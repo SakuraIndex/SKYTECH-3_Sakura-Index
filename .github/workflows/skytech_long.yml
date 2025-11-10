@@ -1,0 +1,47 @@
+name: SKYTECH Long Charts
+
+on:
+  schedule:
+    - cron: '30 22 * * 1-5'    # JST 07:30（米株でなくJPだが、朝方でOK・任意）
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: skytech-outputs-long
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: |
+          python -m pip install -U pip
+          pip install -r src/requirements.txt
+
+      - name: Calc snapshot & stats
+        run: python src/skytech_snapshot.py
+
+      - name: Build long charts (7d/1m/1y)
+        run: python scripts/make_long_chart.py
+
+      - name: Commit & push
+        run: |
+          set -e
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/outputs/*
+          git commit -m "chore(skytech): long charts" || echo "nothing to commit"
+          git pull --rebase --autostash origin main
+          git push origin HEAD:main
