@@ -1,0 +1,14 @@
+{
+  "key": "SKYTECH-3",
+  "name": "Sky Tech Index（スカイテック指数）",
+  "base_date": "2024-01-02",
+  "base_level": 1000.0,
+  "tickers": [
+    "6232.T",
+    "218A.T",
+    "278A.T"
+  ],
+  "unit": "JPY",
+  "weighting": "equal",
+  "timezone": "Asia/Tokyo"
+}
