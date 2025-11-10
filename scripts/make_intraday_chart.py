@@ -1,56 +1,34 @@
+# scripts/make_intraday_chart.py
 import json
-from pathlib import Path
-from datetime import timezone, timedelta, datetime
-
 import pandas as pd
 import matplotlib.pyplot as plt
+from datetime import datetime
+import pytz, os
 
-ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "docs" / "outputs"
-CONF = ROOT / "src" / "skytech_tickers.json"
-JST = timezone(timedelta(hours=9))
-
-def jst_now_str():
-    return datetime.now(JST).strftime("%Y/%m/%d %H:%M (JST)")
-
-def load_stats():
-    p = OUT / "skytech_3_stats.json"
-    return json.loads(p.read_text()) if p.exists() else {}
+JST = pytz.timezone("Asia/Tokyo")
+OUT = "docs/outputs"
 
 def main():
-    csvp = OUT / "skytech_3_intraday.csv"
-    if not csvp.exists():
-        print("no intraday csv; skip chart")
-        return
-    s = pd.read_csv(csvp)
-    s["datetime_jst"] = pd.to_datetime(s["datetime_jst"])
-    s = s.set_index("datetime_jst")["pct"]
+    df = pd.read_csv(os.path.join(OUT, "skytech_3_intraday.csv"))
+    df["datetime_jst"] = pd.to_datetime(df["datetime_jst"]).dt.tz_localize(JST)
+    df = df.set_index("datetime_jst")
+    last = float(df["pct"].iloc[-1])
 
-    stats = load_stats()
-    pct_now = float(stats.get("pct_intraday", 0.0))
-    title = f"SKYTECH-3 Intraday Snapshot ({jst_now_str()})"
-
-    # 黒ベース・精細な見栄え
-    fig, ax = plt.subplots(figsize=(14, 6), dpi=130)
-    fig.patch.set_facecolor("#0b1420")
+    # 簡略チャート（snapshotと同じ色味に合わせる）
+    fig = plt.figure(figsize=(12, 6), dpi=150)
+    ax = fig.add_subplot(111)
     ax.set_facecolor("#0b1420")
-
-    pos = pct_now >= 0
-    line_color = "#67e8f9" if pos else "#fda4af"
-    fill_color = "#0ea5a880" if pos else "#ef444480"
-
-    ax.plot(s.index, s.values, linewidth=2.2, color=line_color)
-    ax.fill_between(s.index, 0, s.values, where=(s.values>=0), interpolate=True, alpha=0.25, color="#0ea5a8")
-    ax.fill_between(s.index, 0, s.values, where=(s.values<0),  interpolate=True, alpha=0.25, color="#ef4444")
-
-    ax.set_title(title, color="#d4e9f7", fontsize=14, pad=12)
-    ax.set_ylabel("Change vs Open (%)", color="#9fb6c7")
-    ax.tick_params(colors="#9fb6c7")
-    for spine in ax.spines.values():
-        spine.set_color("#1c2a3a")
-
+    fig.patch.set_facecolor("#0b1420")
+    ax.tick_params(colors="#cfe6f3")
+    for s in ax.spines.values():
+        s.set_color("#223447")
+    ax.plot(df.index, df["pct"], lw=2.2, color="#8ce7e7")
+    ax.fill_between(df.index, df["pct"], 0, alpha=0.18, color=("#34d399" if last>=0 else "#fb7185"))
+    ax.set_ylabel("Change vs Open (%)", color="#cfe6f3")
+    ax.set_title("SKYTECH-3 Intraday Snapshot", color="#d9f0ff")
+    ax.grid(True, alpha=0.15, color="#4b5b6b")
     fig.tight_layout()
-    fig.savefig(OUT / "skytech_3_intraday.png", facecolor=fig.get_facecolor(), bbox_inches="tight")
+    fig.savefig(os.path.join(OUT, "skytech_3_intraday.png"))
     plt.close(fig)
 
 if __name__ == "__main__":
