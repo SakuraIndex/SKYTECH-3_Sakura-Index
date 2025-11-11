@@ -1,0 +1,34 @@
+{
+  "index_key": "SKYTECH-3",
+  "label": "SkyTech",
+  "category": "次世代モビリティ / ドローン",
+  "description": "日本のドローン・空モビリティ関連の主要上場企業で構成。各社の産業用ドローン、インフラ点検、空の物流等のテーマに着目したテーマ指数。",
+  "method": {
+    "weighting": "equal",
+    "rebalancing": "quarterly",
+    "calc": "intraday percent vs prev_close",
+    "notes": "構成は随時見直し。新規上場/指定替え等は適宜反映。"
+  },
+  "components": [
+    {
+      "ticker": "6232",
+      "exchange": "TSE",
+      "name_ja": "ACSL",
+      "weight": 0.3333
+    },
+    {
+      "ticker": "218A",
+      "exchange": "TSE Growth",
+      "name_ja": "Liberaware",
+      "weight": 0.3333,
+      "note": "グロース市場 銘柄コード末尾A"
+    },
+    {
+      "ticker": "278A",
+      "exchange": "TSE Growth",
+      "name_ja": "Terra Drone",
+      "weight": 0.3333,
+      "note": "グロース市場 銘柄コード末尾A"
+    }
+  ]
+}
